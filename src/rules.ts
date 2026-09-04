@@ -63,9 +63,9 @@ export const HANDLER_REQUIRED: Record<string, string[]> = {
 /** 非推奨キー → 置き換え先 */
 export const DEPRECATED_SETTINGS: Record<string, string> = {
   ignorePatterns: "permissions.deny",
-  includeCoAuthoredBy: "attribution（v2.0.62 以降）",
+  includeCoAuthoredBy: "attribution (since v2.0.62)",
   disableArtifact: "enableArtifact",
-  voiceEnabled: "voice.enabled（v2.1.92 以降）",
+  voiceEnabled: "voice.enabled (since v2.1.92)",
 };
 
 /** そのファイルからは効かないスコープのキー（一部。確実なものだけ） */

@@ -20,7 +20,7 @@ const expected: Expect[] = [
   { file: ".claude/settings.json", contains: "B*" },
   { file: ".claude/settings.json", contains: "defaultMode: bypassPermissions" },
   { file: ".claude/settings.json", contains: "mcp__memory__.*" },
-  { file: ".claude/settings.json", contains: "必須の `command`" },
+  { file: ".claude/settings.json", contains: "is missing the required `command`" },
   { file: ".claude/settings.json", contains: "CwdChanged" },
   { file: ".claude/settings.json", contains: "SessionStart" },
   { file: ".claude/settings.json", contains: "NotARealEvent" },
@@ -30,9 +30,9 @@ const expected: Expect[] = [
   { file: ".mcp.json", contains: "tinyTime" },
   { file: ".claude/agents/a.md", contains: "bad:name" },
   { file: ".claude/agents/b.md", contains: "description" },
-  { file: ".claude/agents/c.md", contains: "重複" },
+  { file: ".claude/agents/c.md", contains: "is also used by" },
   { file: ".claude/agents/c.md", contains: "cacheTtl" },
-  { file: ".claude/agents/d.md", contains: "frontmatter がありません" },
+  { file: ".claude/agents/d.md", contains: "No frontmatter" },
 ];
 
 let pass = 0, fail = 0;
@@ -55,9 +55,9 @@ const clean = await check(F + "clean");
 if (clean.findings.length === 0) pass++;
 else {
   fail++;
-  console.log(`  NG 正しい設定に ${clean.findings.length} 件の誤検出:`);
+  console.log(`  NG 正しい設定に ${clean.findings.length} `);
   for (const f of clean.findings) console.log(`     ${f.file}: ${f.message}`);
 }
 
-console.log(`\n  ${pass} 件成功 / ${fail} 件失敗`);
+console.log(`\n  ${pass} passed / ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);

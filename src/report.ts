@@ -39,10 +39,10 @@ function color(on: boolean, code: string, s: string): string {
 /** 人が読む形式。既定。 */
 export function formatHuman(r: Result, tty: boolean): string {
   if (r.checked.length === 0) {
-    return "検査対象が見つかりません。.claude/ のあるディレクトリで実行してください。";
+    return "Nothing to check. Run this where a .claude/ directory exists.";
   }
   if (r.findings.length === 0) {
-    return `問題なし（${r.checked.length} ファイルを検査）`;
+    return `No problems (${r.checked.length} files checked)`;
   }
 
   const lines: string[] = [];
@@ -53,12 +53,12 @@ export function formatHuman(r: Result, tty: boolean): string {
     const where = f.line ? `${f.file}:${f.line}` : f.file;
     lines.push(`${tag} ${where}`);
     lines.push(`      ${f.message}`);
-    lines.push(color(tty, DIM, `      根拠: ${f.because}`));
+    lines.push(color(tty, DIM, `      why: ${f.because}`));
     lines.push("");
   }
   const errors = r.findings.filter((f) => f.severity === "error").length;
   const warns = r.findings.length - errors;
-  lines.push(`${r.checked.length} ファイルを検査。error ${errors} 件 / warn ${warns} 件`);
+  lines.push(`${r.checked.length} files checked. ${errors} error(s), ${warns} warning(s)`);
   return lines.join("\n");
 }
 
@@ -69,7 +69,7 @@ export function formatGithub(r: Result): string {
       const level = f.severity === "error" ? "error" : "warning";
       const pos = f.line ? `,line=${f.line}` : "";
       // アノテーションは改行を \n の literal で渡す必要がある
-      const msg = `${f.message} / 根拠: ${f.because}`.replace(/\n/g, "%0A");
+      const msg = `${f.message} / why: ${f.because}`.replace(/\n/g, "%0A");
       return `::${level} file=${f.file}${pos}::${msg}`;
     })
     .join("\n");

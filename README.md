@@ -1,62 +1,68 @@
 # ccheck
 
-`.claude/` の設定を検査する。壊れている箇所と、非推奨になった書き方を指摘する。
+Checks your `.claude/` configuration and tells you what is broken and what has been
+deprecated — **with a link to the documentation line that makes it a rule.**
 
-Claude Code の設定は週単位で変わります。変更履歴を並べたサイトはいくつもありますが、
-**「その変更があなたの設定を壊すか」を答えるものはありません。** 読む人ごとに答えが
-違うので、記事や通知では原理的に配信できないためです。それをやるツールです。
+日本語版は [README.ja.md](README.ja.md) にあります。
 
-## 使う
+![demo](docs/demo.gif)
 
-依存関係はありません。Node 22 以降があれば動きます。
+Claude Code's configuration surface changes week to week. Several sites already
+aggregate the changelogs. None of them answer the question you actually have:
+**does this change break my config?** That answer is different for every reader,
+so it cannot be delivered by an article or a newsletter. It has to be a tool.
+
+## Use it
+
+No dependencies. Node 22 or later.
 
 ```bash
-npx github:quintetkit/ccheck        # リポジトリ直下で
+npx github:quintetkit/ccheck        # from your repository root
 ```
 
-CI に入れる場合:
+In CI:
 
 ```yaml
 - uses: quintetkit/ccheck@v1
 ```
 
-## 検査するもの
+## What it checks
 
-| 対象 | 見るもの |
+| Target | What it looks at |
 |---|---|
-| `.claude/settings.json` | JSON の妥当性、未知のキー、権限ルールの書式 |
-| `.claude/agents/*.md` | frontmatter の必須項目、`tools` に存在しないツール名 |
-| `.claude/commands/*.md` | frontmatter の有効なキー |
-| `.mcp.json` | サーバ定義の構造 |
-| hooks 設定 | 存在しないイベント名 |
+| `.claude/settings.json` | JSON validity, permission rule syntax, deprecated keys |
+| `.claude/agents/*.md` | required frontmatter, duplicate names, invalid names |
+| `.mcp.json` | required fields per transport |
+| hooks configuration | unknown event names, matchers that match nothing |
 
-## 方針
+## What it will not check
 
-**誤検出を出さないこと**を最優先にしています。正しい設定を「壊れている」と言うツールは、
-無いほうがマシです。したがって:
+A checker that calls a valid configuration broken is worse than no checker.
+So ccheck only implements rules the documentation states outright — as an error,
+as skipped, or as ignored. Everything else is passed in silence.
 
-- **公式ドキュメントで裏を取れたことしか検査しません。** 憶測でスキーマを書きません
-- 判断がつかないものは**黙って通します**。「たぶん違反」は出しません
-- 各指摘には、なぜそう言えるかの根拠を付けます
+| Not checked | Why |
+|---|---|
+| Unknown keys | The docs say the published schema lags the CLI. Checking this would flag every new feature |
+| `model` values | No exhaustive list of valid values is documented |
+| `Read` / `Edit` path patterns | Four anchor forms combined with gitignore semantics — too easy to get wrong |
+| Booleans limited to `true` / `false` | `yes` / `no` / `on` / `off` / `1` / `0` are also valid |
 
-## ライセンス
+Every finding carries the URL it came from, so you can check the original yourself
+rather than taking the tool's word for it.
+
+## Sources
+
+`docs-snapshot/` holds the official documentation this was built from, captured
+2026-09-04. Before adding a rule, find the line in there that supports it.
+**If the documentation does not say it is an error, skipped, or ignored, it does
+not become a rule.**
+
+## Exit codes
+
+`1` if there is at least one error, `0` otherwise. Pass `--strict` to fail on
+warnings too.
+
+## Licence
 
 MIT
-
-## 出典
-
-`docs-snapshot/` に、検査ルールの根拠にした公式ドキュメントの原文（2026-09-04 取得）を
-置いています。ルールを足すときは、まずここに該当箇所があるかを確認してください。
-**原文に「エラーになる」「スキップされる」「無視される」と書かれていないものは、
-ルールにしません。**
-
-## 検査しないと決めたもの
-
-意図的に検査していません。やると誤検出になるためです。
-
-| 検査しないもの | 理由 |
-|---|---|
-| 未知のキー | 公式が「スキーマは最新の CLI に遅れる」と明記している。新機能を使うたびに誤検出する |
-| `model` の値 | 有効な値の網羅リストが公開されていない |
-| `Read` / `Edit` のパス指定の妥当性 | アンカー4種と gitignore 式の組み合わせで、誤検出のリスクが高すぎる |
-| frontmatter の真偽値を `true` / `false` に限る | `yes` / `no` / `on` / `off` / `1` / `0` も有効 |

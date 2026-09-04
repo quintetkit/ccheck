@@ -72,9 +72,9 @@ async function checkAgents(root: string, out: Finding[], checked: string[]): Pro
         severity: looksLikeFm ? "error" : "warn",
         file: rel,
         message: looksLikeFm
-          ? "frontmatter が認識されません。開始の `---` がファイルの1行目にあり、閉じの `---` があるか確認してください"
-          : "frontmatter がありません。このファイルはサブエージェントではなく、ただの文書として扱われます",
-        because: `開始の \`---\` が1行目にあるときだけ frontmatter として読まれる: ${SRC.agents}`,
+          ? "The frontmatter was not recognised. Check that the opening `---` is the first line of the file and that it is closed."
+          : "No frontmatter. This file is treated as a document, not a subagent.",
+        because: `Frontmatter is read only when the opening \`---\` is the file's first line: ${SRC.agents}`,
       });
       continue;
     }
@@ -85,30 +85,31 @@ async function checkAgents(root: string, out: Finding[], checked: string[]): Pro
     if (name === undefined) {
       out.push({
         severity: "warn", file: rel,
-        message: "`name` がありません。サブエージェントとして読み込まれず、文書として扱われます",
-        because: `name の無いファイルは文書扱いになる: ${SRC.agents}`,
+        message: "No `name`. This file is not loaded as a subagent; it is treated as a document.",
+        because: `A file without a name is treated as a document: ${SRC.agents}`,
       });
     } else {
       if (name.includes(":") || name.startsWith("-")) {
         out.push({
           severity: "error", file: rel, line: fm.entries.get("name")?.line,
-          message: `\`name: ${name}\` は読み込まれません。\`:\` を含む名前と \`-\` で始まる名前は無効です`,
-          because: `\`-\` で始まるか \`:\` を含む name はファイルごとスキップされる: ${SRC.agents}`,
+          message: `\`name: ${name}\` is not loaded. A name containing \`:\` or starting with \`-\` is invalid.`,
+          because: `A name starting with \`-\` or containing \`:\` makes Claude Code skip the whole file: ${SRC.agents}`,
         });
       }
       if (description === undefined) {
         out.push({
           severity: "error", file: rel, line: fm.endLine,
-          message: "`name` はありますが `description` がありません。このファイルはスキップされます",
-          because: `name があって description が無いファイルはスキップされる: ${SRC.agents}`,
+          message: "`name` is present but `description` is missing. This file is skipped.",
+          because: `A file with a name but no description is skipped: ${SRC.agents}`,
         });
       }
       const prev = seen.get(name);
       if (prev) {
         out.push({
           severity: "error", file: rel, line: fm.entries.get("name")?.line,
-          message: `\`name: ${name}\` が ${prev} と重複しています。どちらか一方しか読み込まれません`,
-          because: `name が重複すると、文書化されていないファイル読み取り順で1つだけが読まれる: ${SRC.agents}`,
+          message: `\`name: ${name}\` is also used by ${prev}, `
+            + `which means only one of the two is ever loaded.`,
+          because: `Duplicate names leave the choice to an undocumented filesystem read order: ${SRC.agents}`,
         });
       } else {
         seen.set(name, rel);
@@ -118,8 +119,8 @@ async function checkAgents(root: string, out: Finding[], checked: string[]): Pro
     if (fm.entries.has("cacheTtl")) {
       out.push({
         severity: "error", file: rel, line: fm.entries.get("cacheTtl")?.line,
-        message: "`cacheTtl` は frontmatter の直下ではなく `experimental` の中に書きます",
-        because: `cacheTtl は experimental マップの中に書く: ${SRC.agents}`,
+        message: "`cacheTtl` goes inside the `experimental` map, not at the top level of the frontmatter.",
+        because: `cacheTtl belongs inside the experimental map: ${SRC.agents}`,
       });
     }
   }
@@ -138,9 +139,9 @@ function checkMcpServers(
     if (conf.url !== undefined && type === undefined) {
       out.push({
         severity: "error", file: rel, line,
-        message: `サーバ "${name}" に \`url\` がありますが \`type\` がありません。`
-          + `\`"type": "http"\`（または "sse" / "ws"）を足してください`,
-        because: `type の無いエントリは stdio として読まれるため、url だけの指定は設定エラーになりサーバは読み込まれない: ${SRC.mcp}`,
+        message: `Server "${name}" has a \`url\` but no \`type\`. `
+          + `Add \`"type": "http"\` (or "sse" / "ws").`,
+        because: `An entry with no type is read as a stdio server, so a url-only entry is a configuration error and the server is skipped: ${SRC.mcp}`,
       });
       continue;
     }
@@ -148,22 +149,22 @@ function checkMcpServers(
     if (required && conf[required] === undefined) {
       out.push({
         severity: "error", file: rel, line,
-        message: `サーバ "${name}"（type: ${type ?? "stdio"}）に必須の \`${required}\` がありません`,
-        because: `トランスポートごとの必須フィールド: ${SRC.mcp}`,
+        message: `Server "${name}" (type: ${type ?? "stdio"}) is missing the required \`${required}\``,
+        because: `Required fields per transport: ${SRC.mcp}`,
       });
     }
     if (type === "sse") {
       out.push({
         severity: "warn", file: rel, line,
-        message: `サーバ "${name}" の \`sse\` は非推奨です。可能なら \`http\` を使ってください`,
-        because: `SSE トランスポートは非推奨: ${SRC.mcp}`,
+        message: `Server "${name}" uses the deprecated \`sse\` transport. Use \`http\` where available.`,
+        because: `The SSE transport is deprecated: ${SRC.mcp}`,
       });
     }
     if (typeof conf.timeout === "number" && conf.timeout < 1000) {
       out.push({
         severity: "warn", file: rel, line,
-        message: `サーバ "${name}" の \`timeout: ${conf.timeout}\` はミリ秒として扱われ、1000 未満は無視されます`,
-        because: `timeout はミリ秒。1000 未満は無視され MCP_TOOL_TIMEOUT にフォールバックする: ${SRC.mcp}`,
+        message: `Server "${name}": \`timeout: ${conf.timeout}\` is in milliseconds; values below 1000 are ignored.`,
+        because: `timeout is in milliseconds and anything under 1000 is ignored, falling through to MCP_TOOL_TIMEOUT: ${SRC.mcp}`,
       });
     }
   }
@@ -179,8 +180,8 @@ function checkHooks(hooks: unknown, rel: string, text: string, out: Finding[]): 
     if (!HOOK_EVENTS.has(event)) {
       out.push({
         severity: "warn", file: rel, line: evLine,
-        message: `\`${event}\` は既知のフックイベント名ではありません。この項目は読み飛ばされます`,
-        because: `未知のフックイベント名はその項目だけが読み飛ばされる: ${SRC.settings}`,
+        message: `\`${event}\` is not a known hook event name. This entry is skipped.`,
+        because: `An unknown hook event name causes that entry alone to be skipped: ${SRC.settings}`,
       });
       continue;
     }
@@ -192,8 +193,8 @@ function checkHooks(hooks: unknown, rel: string, text: string, out: Finding[]): 
       if (group.matcher !== undefined && NO_MATCHER_EVENTS.has(event)) {
         out.push({
           severity: "warn", file: rel, line: evLine,
-          message: `\`${event}\` は matcher に対応していません。この \`matcher\` は黙って無視されます`,
-          because: `matcher 非対応のイベントに matcher を書いても無視される: ${SRC.hooks}`,
+          message: `\`${event}\` does not support matchers. This \`matcher\` is silently ignored.`,
+          because: `A matcher on an event without matcher support is silently ignored: ${SRC.hooks}`,
         });
       }
       // mcp__server だけの matcher は完全一致で比較されるので何にもマッチしない
@@ -202,9 +203,9 @@ function checkHooks(hooks: unknown, rel: string, text: string, out: Finding[]): 
           && !group.matcher.includes(".*")) {
         out.push({
           severity: "error", file: rel, line: evLine,
-          message: `matcher \`${group.matcher}\` は何にもマッチしません。`
-            + `\`${group.matcher}__.*\` のように \`.*\` が必要です`,
-          because: `記号を含まない matcher は完全一致で比較されるため、mcp__<server> だけでは一致するツールが無い: ${SRC.hooks}`,
+          message: `matcher \`${group.matcher}\` matches no tool. `
+            + `\`${group.matcher}__.*\` is required — the \`.*\` is not optional.`,
+          because: `A matcher with no special characters is compared as an exact string, so mcp__<server> alone matches nothing: ${SRC.hooks}`,
         });
       }
 
@@ -215,9 +216,10 @@ function checkHooks(hooks: unknown, rel: string, text: string, out: Finding[]): 
         if (type === undefined || !(type in HANDLER_REQUIRED)) {
           out.push({
             severity: "error", file: rel, line: evLine,
-            message: `${event} のハンドラの \`type\` が ${type ? `\`${type}\`` : "未指定"} です。`
-              + `command / http / mcp_tool / prompt / agent のいずれかにしてください`,
-            because: `ハンドラの type は5種類: ${SRC.hooks}`,
+            message: `${event} handler has a \`type\` of `
+              + `${type ? `\`${type}\`` : "(missing)"}. `
+              + `It must be one of command / http / mcp_tool / prompt / agent.`,
+            because: `A handler type is one of five values: ${SRC.hooks}`,
           });
           continue;
         }
@@ -225,16 +227,16 @@ function checkHooks(hooks: unknown, rel: string, text: string, out: Finding[]): 
           if (h[field] === undefined) {
             out.push({
               severity: "error", file: rel, line: evLine,
-              message: `${event} の \`type: ${type}\` ハンドラに必須の \`${field}\` がありません`,
-              because: `type ごとの必須フィールド: ${SRC.hooks}`,
+              message: `The ${event} \`type: ${type}\` handler is missing the required \`${field}\``,
+              because: `Required fields per handler type: ${SRC.hooks}`,
             });
           }
         }
         if (h.if !== undefined && !IF_EVENTS.has(event)) {
           out.push({
             severity: "error", file: rel, line: evLine,
-            message: `\`${event}\` では \`if\` が評価されません。このハンドラは決して実行されません`,
-            because: `if が評価されるのはツール系イベントのみ: ${SRC.hooks}`,
+            message: `\`${event}\` does not evaluate \`if\`. This handler never runs.`,
+            because: `if is evaluated only on tool events: ${SRC.hooks}`,
           });
         }
       }
@@ -258,23 +260,23 @@ function checkPermissions(perms: unknown, rel: string, text: string, out: Findin
       if (m && PATH_RULE_IGNORED.has(m[1])) {
         out.push({
           severity: "warn", file: rel, line,
-          message: `\`${rule}\` は受理されますが参照されません。`
-            + `ファイルパスの規則は \`Read(...)\` と \`Edit(...)\` にだけ効きます`,
-          because: `Write / NotebookEdit / Glob / MultiEdit にパス規則を書いても参照されず、起動時に警告が出る: ${SRC.permissions}`,
+          message: `\`${rule}\` is accepted but never consulted. `
+            + `File path rules apply only to \`Read(...)\` and \`Edit(...)\`.`,
+          because: `A path rule on Write / NotebookEdit / Glob / MultiEdit is never consulted and warns at startup: ${SRC.permissions}`,
         });
       }
       if (key === "allow" && rule.startsWith("mcp__") && m) {
         out.push({
           severity: "error", file: rel, line,
-          message: `\`${rule}\` は読み込み時に読み飛ばされます。allow の mcp__ 規則に括弧は使えません`,
-          because: `設定ファイルの読み込み時、括弧を持つ mcp__ 規則は読み飛ばされる: ${SRC.permissions}`,
+          message: `\`${rule}\` is skipped at load time. An allow rule for mcp__ cannot use parentheses.`,
+          because: `When a settings file is loaded, any mcp__ rule with parentheses is skipped: ${SRC.permissions}`,
         });
       }
       if (key === "allow" && !rule.startsWith("mcp__") && /^[A-Za-z_]*\*/.test(rule)) {
         out.push({
           severity: "warn", file: rel, line,
-          message: `\`${rule}\` のような先頭が固定されていない allow の指定は、警告つきで読み飛ばされます`,
-          because: `アンカーの無い allow の glob は警告付きでスキップされ、何も自動承認しない: ${SRC.permissions}`,
+          message: `\`${rule}\` is an unanchored allow glob and is skipped with a warning.`,
+          because: `An unanchored allow glob is skipped with a warning and auto-approves nothing: ${SRC.permissions}`,
         });
       }
     }
@@ -285,8 +287,8 @@ function checkPermissions(perms: unknown, rel: string, text: string, out: Findin
       && (rel.includes(".claude/settings"))) {
     out.push({
       severity: "warn", file: rel, line: lineOf(text, "defaultMode"),
-      message: `\`defaultMode: ${mode}\` はプロジェクト設定・ローカル設定からは効きません`,
-      because: `auto と bypassPermissions はプロジェクト/ローカル設定からは有効にならない: ${SRC.settingsRef}`,
+      message: `\`defaultMode: ${mode}\` does not take effect from project or local settings.`,
+      because: `auto and bypassPermissions do not take effect from project or local settings: ${SRC.settingsRef}`,
     });
   }
 }
@@ -304,23 +306,23 @@ function checkSettings(data: unknown, rel: string, text: string, out: Finding[])
       out.push({
         severity: dead ? "warn" : "warn", file: rel, line,
         message: dead
-          ? "`disableArtifact: false` は完全に無視されます。`enableArtifact` を使ってください"
-          : `\`${key}\` は非推奨です。${replacement} を使ってください`,
-        because: `非推奨キーと置き換え先: ${SRC.settingsRef}`,
+          ? "`disableArtifact: false` is ignored entirely. Use `enableArtifact`."
+          : `\`${key}\` is deprecated. Use ${replacement} instead.`,
+        because: `Deprecated keys and their replacements: ${SRC.settingsRef}`,
       });
     }
     if (project && MANAGED_ONLY.has(key)) {
       out.push({
         severity: "warn", file: rel, line,
-        message: `\`${key}\` は組織の管理設定でのみ有効です。このファイルからは効きません`,
-        because: `管理設定スコープのキーは共有ファイルからは適用されない: ${SRC.settings}`,
+        message: `\`${key}\` applies only from managed settings. It has no effect from this file.`,
+        because: `Keys in the managed scope are not applied from a shared file: ${SRC.settings}`,
       });
     }
     if (GLOBAL_CONFIG_ONLY.has(key)) {
       out.push({
         severity: "warn", file: rel, line,
-        message: `\`${key}\` は \`~/.claude.json\` にのみ書けます。このファイルからは効きません`,
-        because: `Global config スコープのキー: ${SRC.settingsRef}`,
+        message: `\`${key}\` can be set in \`~/.claude.json\` only. It has no effect from this file.`,
+        because: `A key in the Global config scope: ${SRC.settingsRef}`,
       });
     }
   }
@@ -330,8 +332,8 @@ function checkSettings(data: unknown, rel: string, text: string, out: Finding[])
       if (typeof v !== "string") {
         out.push({
           severity: "error", file: rel, line: lineOf(text, k),
-          message: `\`env.${k}\` の値が ${typeof v} です。環境変数の値は文字列で書きます（例: "1"）`,
-          because: `env は変数名から文字列への対応表: ${SRC.settingsRef}`,
+          message: `\`env.${k}\` is a ${typeof v}. Environment variable values must be strings (e.g. "1").`,
+          because: `env maps variable names to string values: ${SRC.settingsRef}`,
         });
       }
     }
@@ -363,8 +365,8 @@ export async function check(root: string): Promise<Result> {
     if ("error" in parsed) {
       out.push({
         severity: "error", file: rel, line: parsed.line,
-        message: `JSON として読めません: ${parsed.error}`,
-        because: `設定ファイルは厳密な JSON。\`//\` のコメントや末尾のカンマは構文エラーになる: ${SRC.settings}`,
+        message: `Cannot be parsed as JSON: ${parsed.error}`,
+        because: `Settings files are strict JSON: a \`//\` comment or a trailing comma is a syntax error: ${SRC.settings}`,
       });
       continue;
     }
