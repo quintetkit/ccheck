@@ -45,3 +45,18 @@ jobs:
       - uses: ./
         with:
           path: test/fixtures/clean
+
+  published-tag:
+    # 公開されているタグ経由で本当に使えるかを毎回確かめる。
+    # main では動くのにタグでは壊れている、という事故を防ぐため。
+    # （このジョブは v1 を打った後でないと必ず落ちる。初回リリース前は入れないこと）
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v5
+        with: { node-version: '25' }
+      - uses: actions/checkout@v5
+        with: { path: fixtures }
+      - uses: quintetkit/ccheck@v1
+        with:
+          path: fixtures/test/fixtures/clean
+          strict: "true"
