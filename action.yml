@@ -1,0 +1,26 @@
+name: ccheck
+description: .claude/ の設定を検査し、壊れている箇所と非推奨の書き方を指摘する
+branding:
+  icon: check-square
+  color: orange
+
+inputs:
+  path:
+    description: 検査するディレクトリ
+    required: false
+    default: "."
+  strict:
+    description: warn でも失敗させる場合は true
+    required: false
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - name: ccheck
+      shell: bash
+      run: |
+        set -euo pipefail
+        extra=""
+        if [ "${{ inputs.strict }}" = "true" ]; then extra="--strict"; fi
+        node "${{ github.action_path }}/src/cli.ts" "${{ inputs.path }}" --format github $extra

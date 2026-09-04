@@ -1,0 +1,6 @@
+{ "mcpServers": {
+  "noType":   { "url": "https://example.com/mcp" },
+  "noCmd":    { "type": "stdio" },
+  "oldSse":   { "type": "sse", "url": "https://example.com/sse" },
+  "tinyTime": { "type": "http", "url": "https://example.com", "timeout": 500 }
+} }

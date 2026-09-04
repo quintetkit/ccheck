@@ -1,0 +1,47 @@
+name: ci
+on:
+  push: { branches: [main] }
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with: { node-version: '25' }
+      # 依存パッケージが無いので install は要らない
+      - name: テスト
+        run: node --experimental-strip-types test/run.ts
+
+  cli:
+    # 配布するのは CLI なので、テスト関数ではなく CLI そのものを叩いて
+    # 終了コードまで確かめる。動かないものは配らない
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with: { node-version: '25' }
+      - name: 正しい設定では何も言わないこと
+        run: node --experimental-strip-types src/cli.ts test/fixtures/clean --strict
+      - name: 壊れた設定では 1 で終わること
+        run: |
+          set +e
+          node --experimental-strip-types src/cli.ts test/fixtures/broken
+          code=$?
+          set -e
+          if [ "$code" -ne 1 ]; then
+            echo "壊れた設定なのに終了コードが $code でした（期待 1）"
+            exit 1
+          fi
+
+  action:
+    # composite action として呼べることまで確かめる
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with: { node-version: '25' }
+      - uses: ./
+        with:
+          path: test/fixtures/clean
