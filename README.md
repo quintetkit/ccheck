@@ -71,6 +71,8 @@ run at once without colliding — I publish that as
 [Quartet](https://github.com/quintetkit/quartet): four personas with separate
 permissions, driven by GitHub Issues, under MIT.
 
+[scopecheck](https://github.com/quintetkit/scopecheck) answers the question one step earlier: given the Issues you already have open, which pairs declare a shared file and therefore cannot run at the same time.
+
 A larger version with a UI Designer persona, the Reviewer's decision criteria,
 a per-Issue parallel execution script and a 10-chapter guide is
 [sold as Quintet](https://quartet-dev.booth.pm/items/8807156).

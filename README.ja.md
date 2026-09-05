@@ -68,6 +68,8 @@ GitHub Issue を軸に、権限を分けた4人格を回す構成です。
 UI 設計人格・レビュー基準・Issue 単位の並列実行スクリプト・実践ガイド10章を足した
 [Quintet は有料](https://quartet-dev.booth.pm/items/8807156)です。
 
+[scopecheck](https://github.com/quintetkit/scopecheck) は、その一歩手前を見ます。いま開いている Issue のうち、**どれとどれが同じファイルを宣言していて、同時に走らせられないか**を出します。
+
 ## ライセンス
 
 MIT
