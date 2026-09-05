@@ -58,6 +58,16 @@ CI に入れる場合:
 
 error が1件でもあれば `1`、なければ `0`。`--strict` を付けると warn でも `1` になります。
 
+## 関連
+
+`ccheck` が見るのは `.claude/` の書き方です。その中に何を書くか
+（複数の Claude Code を同時に走らせても衝突しないように、作業をどう分けるか）は
+[Quartet](https://github.com/quintetkit/quartet) として MIT で公開しています。
+GitHub Issue を軸に、権限を分けた4人格を回す構成です。
+
+UI 設計人格・レビュー基準・Issue 単位の並列実行スクリプト・実践ガイド10章を足した
+[Quintet は有料](https://quartet-dev.booth.pm/items/8807156)です。
+
 ## ライセンス
 
 MIT

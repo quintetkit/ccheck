@@ -63,6 +63,18 @@ not become a rule.**
 `1` if there is at least one error, `0` otherwise. Pass `--strict` to fail on
 warnings too.
 
+## Related
+
+`ccheck` looks at the shape of a `.claude/` directory. If you are also deciding
+what should go *in* one — how to split work so several Claude Code sessions can
+run at once without colliding — I publish that as
+[Quartet](https://github.com/quintetkit/quartet): four personas with separate
+permissions, driven by GitHub Issues, under MIT.
+
+A larger version with a UI Designer persona, the Reviewer's decision criteria,
+a per-Issue parallel execution script and a 10-chapter guide is
+[sold as Quintet](https://quartet-dev.booth.pm/items/8807156).
+
 ## Licence
 
 MIT
