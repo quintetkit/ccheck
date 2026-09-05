@@ -71,6 +71,10 @@ run at once without colliding — I publish that as
 [Quartet](https://github.com/quintetkit/quartet): four personas with separate
 permissions, driven by GitHub Issues, under MIT.
 
+Every hook event, what its matcher is tested against, and where the `if` field
+applies, in one table:
+[Claude Code hook events](https://quintetkit.github.io/en/reference/claude-code-hooks.html).
+
 [scopecheck](https://github.com/quintetkit/scopecheck) answers the question one step earlier: given the Issues you already have open, which pairs declare a shared file and therefore cannot run at the same time.
 
 A larger version with a UI Designer persona, the Reviewer's decision criteria,
