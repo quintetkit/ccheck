@@ -1,23 +1,70 @@
 {
-  "ignorePatterns": ["secret/**"],
+  "ignorePatterns": [
+    "secret/**"
+  ],
   "disableArtifact": false,
   "diffTool": "meld",
-  "env": { "DEBUG": 1, "NAME": "ok" },
+  "env": {
+    "DEBUG": 1,
+    "NAME": "ok"
+  },
   "permissions": {
     "defaultMode": "bypassPermissions",
-    "allow": ["Write(src/**)", "mcp__memory(read)", "B*", "Bash(ls *)"],
-    "deny": ["Read(.env)"]
+    "allow": [
+      "Write(src/**)",
+      "mcp__memory(read)",
+      "B*",
+      "Bash(ls *)"
+    ],
+    "deny": [
+      "Read(.env)"
+    ]
   },
   "hooks": {
     "PreToolUse": [
-      { "matcher": "mcp__memory", "hooks": [{ "type": "command" }] }
+      {
+        "matcher": "mcp__memory",
+        "hooks": [
+          {
+            "type": "command"
+          }
+        ]
+      }
     ],
     "CwdChanged": [
-      { "matcher": "x", "hooks": [{ "type": "http", "url": "http://x" }] }
+      {
+        "matcher": "x",
+        "hooks": [
+          {
+            "type": "http",
+            "url": "http://x"
+          }
+        ]
+      }
     ],
     "SessionStart": [
-      { "hooks": [{ "type": "command", "command": "echo hi", "if": "Bash" }] }
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo hi",
+            "if": "Bash"
+          }
+        ]
+      }
     ],
-    "NotARealEvent": [ { "hooks": [] } ]
+    "NotARealEvent": [
+      {
+        "hooks": []
+      }
+    ]
+  },
+  "allowManagedHooksOnly": true,
+  "autoMode": true,
+  "useAutoModeDuringPlan": true,
+  "sandbox": {
+    "network": {
+      "strictAllowlist": true
+    }
   }
 }

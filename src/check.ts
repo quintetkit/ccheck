@@ -5,13 +5,16 @@
  * 各指摘には出典 URL を付ける。根拠を示せない指摘は書かない。
  */
 import { readFile, readdir, stat } from "node:fs/promises";
-import { join, relative, sep } from "node:path";
+import { join, relative, resolve, sep } from "node:path";
 import { parseFrontmatter, str } from "./frontmatter.ts";
 import type { Finding, Result } from "./report.ts";
 import {
-  DEPRECATED_SETTINGS, GLOBAL_CONFIG_ONLY, HANDLER_REQUIRED, HOOK_EVENTS,
-  IF_EVENTS, MANAGED_ONLY, MCP_REQUIRED, NO_MATCHER_EVENTS, PATH_RULE_IGNORED, SRC,
+  DEPRECATED_SETTINGS, HANDLER_REQUIRED, HOOK_EVENTS,
+  IF_EVENTS, MCP_REQUIRED, NO_MATCHER_EVENTS, PATH_RULE_IGNORED, SRC,
 } from "./rules.ts";
+import {
+  GLOBAL_CONFIG_ONLY, MANAGED_ONLY, USER_LOCAL_OR_MANAGED, USER_OR_MANAGED,
+} from "./scopes.ts";
 
 async function exists(p: string): Promise<boolean> {
   try { await stat(p); return true; } catch { return false; }
@@ -293,9 +296,74 @@ function checkPermissions(perms: unknown, rel: string, text: string, out: Findin
   }
 }
 
-function checkSettings(data: unknown, rel: string, text: string, out: Finding[]): void {
+/**
+ * 設定オブジェクトを `sandbox.network.strictAllowlist` のような**点つなぎの名前**に潰す。
+ *
+ * ドキュメントの表がその形で書いてあるので、こちらも合わせないと当たらない。
+ * 実際 `sandbox.*` の8件は、上の階層しか見ていなかったので1件も出ていなかった。
+ *
+ * 配列には降りない（`permissions.allow` の中身はキーではない）。
+ * 上の階層が当たったらそこで止める（`policyHelper` と `policyHelper.path` を
+ * 二重に出さないため）。
+ */
+function flatKeys(data: Record<string, unknown>, hit: (name: string) => boolean,
+                  prefix = ""): Array<[string, unknown]> {
+  const out: Array<[string, unknown]> = [];
+  for (const [key, value] of Object.entries(data)) {
+    const name = prefix ? `${prefix}.${key}` : key;
+    out.push([name, value]);
+    if (isObj(value) && !hit(name)) out.push(...flatKeys(value, hit, name));
+  }
+  return out;
+}
+
+/**
+ * このファイルがどのスコープとして読まれるか。
+ *
+ * `~/.claude/settings.json` は**ユーザ設定**であって、プロジェクト設定ではない。
+ * パスの見た目は同じなので、`root` がホームかどうかで分ける。
+ * ここを分けないと、ユーザ設定に `autoMode` を書いた人へ
+ * 「効きません」と嘘をつくことになる。**1件出た時点で読まれなくなる。**
+ */
+type Scope = "user" | "project" | "local";
+
+function scopeOf(rel: string, root: string): Scope | undefined {
+  if (!rel.includes(".claude/settings")) return undefined;
+  const home = process.env.HOME ?? process.env.USERPROFILE;
+  if (home && resolve(root) === resolve(home)) return "user";
+  return rel.includes("settings.local.json") ? "local" : "project";
+}
+
+function checkSettings(data: unknown, rel: string, text: string, out: Finding[],
+                       root: string): void {
   if (!isObj(data)) return;
-  const project = rel.includes(".claude/settings");
+  const scope = scopeOf(rel, root);
+
+  // どのスコープからも効かないもの / このスコープからは効かないものを分けて見る。
+  // `User, local, or managed` は **local からは効く**ので、project のときだけ出す
+  const blocked = (name: string): string | undefined => {
+    if (GLOBAL_CONFIG_ONLY.has(name)) return "`~/.claude.json` only";
+    if (scope === undefined || scope === "user") {
+      return MANAGED_ONLY.has(name) ? "managed settings only" : undefined;
+    }
+    if (MANAGED_ONLY.has(name)) return "managed settings only";
+    if (USER_OR_MANAGED.has(name)) return "user or managed settings only";
+    if (scope === "project" && USER_LOCAL_OR_MANAGED.has(name)) {
+      return "user, local, or managed settings only";
+    }
+    return undefined;
+  };
+
+  for (const [key, value] of flatKeys(data, (n) => blocked(n) !== undefined)) {
+    const where = blocked(key);
+    if (where !== undefined) {
+      out.push({
+        severity: "warn", file: rel, line: lineOf(text, key.split(".").pop() as string),
+        message: `\`${key}\` applies from ${where}. It has no effect from this file.`,
+        because: `The scope column of the settings table says where each key applies: ${SRC.settingsRef}`,
+      });
+    }
+  }
 
   for (const [key, value] of Object.entries(data)) {
     const line = lineOf(text, key);
@@ -309,20 +377,6 @@ function checkSettings(data: unknown, rel: string, text: string, out: Finding[])
           ? "`disableArtifact: false` is ignored entirely. Use `enableArtifact`."
           : `\`${key}\` is deprecated. Use ${replacement} instead.`,
         because: `Deprecated keys and their replacements: ${SRC.settingsRef}`,
-      });
-    }
-    if (project && MANAGED_ONLY.has(key)) {
-      out.push({
-        severity: "warn", file: rel, line,
-        message: `\`${key}\` applies only from managed settings. It has no effect from this file.`,
-        because: `Keys in the managed scope are not applied from a shared file: ${SRC.settings}`,
-      });
-    }
-    if (GLOBAL_CONFIG_ONLY.has(key)) {
-      out.push({
-        severity: "warn", file: rel, line,
-        message: `\`${key}\` can be set in \`~/.claude.json\` only. It has no effect from this file.`,
-        because: `A key in the Global config scope: ${SRC.settingsRef}`,
       });
     }
   }
@@ -374,7 +428,7 @@ export async function check(root: string): Promise<Result> {
       const servers = isObj(parsed.data) ? parsed.data.mcpServers : undefined;
       if (isObj(servers)) checkMcpServers(servers, rel, text, out);
     } else {
-      checkSettings(parsed.data, rel, text, out);
+      checkSettings(parsed.data, rel, text, out, root);
     }
   }
 

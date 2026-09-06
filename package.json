@@ -1,6 +1,6 @@
 {
   "name": "@quintetkit/ccheck",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Lint your .claude/ configuration. Every finding cites the documentation that says so.",
   "type": "module",
   "license": "MIT",
@@ -32,7 +32,8 @@
     "dist",
     "README.md",
     "README.ja.md",
-    "LICENSE"
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "test": "node --experimental-strip-types test/run.ts",

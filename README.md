@@ -30,10 +30,30 @@ In CI:
 
 | Target | What it looks at |
 |---|---|
-| `.claude/settings.json` | JSON validity, permission rule syntax, deprecated keys |
+| `.claude/settings.json` | JSON validity, permission rule syntax, deprecated keys, **keys that do not apply from this file** |
 | `.claude/agents/*.md` | required frontmatter, duplicate names, invalid names |
 | `.mcp.json` | required fields per transport |
 | hooks configuration | unknown event names, matchers that match nothing |
+
+### Keys that are valid but do not apply here
+
+71 settings keys apply only from a **managed**, **user**, or **global config**
+file. Writing one into a project's `.claude/settings.json` is not an error and
+produces no warning at startup. It simply does nothing.
+
+```
+warn  .claude/settings.json:63
+      `autoMode` applies from user or managed settings only. It has no effect from this file.
+```
+
+The list is generated from the scope column of the official settings table, not
+typed in by hand. Hand-copying it had left 25 of the 39 managed keys out, and the
+23 `user or managed` keys out entirely.
+
+Nested keys count: `sandbox.network.strictAllowlist` is checked by its full
+dotted name, which is how the documentation names it.
+
+`~/.claude/settings.json` **is** the user scope, so nothing is reported there.
 
 ## What it will not check
 

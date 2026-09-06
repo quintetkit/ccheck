@@ -68,19 +68,13 @@ export const DEPRECATED_SETTINGS: Record<string, string> = {
   voiceEnabled: "voice.enabled (since v2.1.92)",
 };
 
-/** そのファイルからは効かないスコープのキー（一部。確実なものだけ） */
-export const MANAGED_ONLY = new Set([
-  "allowAllClaudeAiMcps", "allowedChannelPlugins", "allowManagedHooksOnly",
-  "allowManagedMcpServersOnly", "allowManagedPermissionRulesOnly",
-  "blockedMarketplaces", "claudeMd", "managedSourcesBehavior", "modelPricing",
-  "parentSettingsBehavior", "requiredMaximumVersion", "requiredMinimumVersion",
-  "sshHostAllowlist", "strictKnownMarketplaces",
-]);
-
-export const GLOBAL_CONFIG_ONLY = new Set([
-  "autoConnectIde", "autoInstallIdeExtension", "diffTool",
-  "externalEditorContext", "permissionExplainerEnabled", "teammateDefaultModel",
-]);
+/*
+ * スコープごとのキー一覧は `scopes.ts` に移した。
+ *
+ * ここに手で書いていたときは Managed の39件中14件しか入っておらず、
+ * `User or managed` の23件は表ごと見落としていた。
+ * **手で写す限り、また抜ける。** いまは表から機械的に生成している。
+ */
 
 /** パス指定を書いても参照されないツール（Read / Edit のみが対象） */
 export const PATH_RULE_IGNORED = new Set(["Write", "NotebookEdit", "Glob", "MultiEdit"]);

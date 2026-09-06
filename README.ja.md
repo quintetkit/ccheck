@@ -27,10 +27,29 @@ CI に入れる場合:
 
 | 対象 | 見るもの |
 |---|---|
-| `.claude/settings.json` | JSON の妥当性、権限ルールの書式、非推奨キー |
+| `.claude/settings.json` | JSON の妥当性、権限ルールの書式、非推奨キー、**そのファイルからは効かないキー** |
 | `.claude/agents/*.md` | frontmatter の必須項目、名前の重複、無効な名前 |
 | `.mcp.json` | トランスポート別の必須項目 |
 | hooks 設定 | 存在しないイベント名、何にもマッチしない matcher |
+
+### 書けるが、そこからは効かないキー
+
+設定キーのうち **71 個**は、**管理設定 / ユーザ設定 / `~/.claude.json`** からしか
+効きません。プロジェクトの `.claude/settings.json` に書いてもエラーにならず、
+起動時の警告も出ません。**ただ何も起きません。**
+
+```
+warn  .claude/settings.json:63
+      `autoMode` applies from user or managed settings only. It has no effect from this file.
+```
+
+一覧は公式の設定表のスコープ列から**機械的に生成**しています。手で写していたときは
+Managed の39件中25件が抜けていて、`User or managed` の23件は表ごと落ちていました。
+
+入れ子も見ます。`sandbox.network.strictAllowlist` は、ドキュメントと同じ
+**点つなぎの名前**で照合します。
+
+`~/.claude/settings.json` は**ユーザ設定そのもの**なので、そこでは何も出しません。
 
 ## あえて検査しないもの
 

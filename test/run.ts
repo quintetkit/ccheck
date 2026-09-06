@@ -24,6 +24,11 @@ const expected: Expect[] = [
   { file: ".claude/settings.json", contains: "CwdChanged" },
   { file: ".claude/settings.json", contains: "SessionStart" },
   { file: ".claude/settings.json", contains: "NotARealEvent" },
+  { file: ".claude/settings.json", contains: "allowManagedHooksOnly" },
+  { file: ".claude/settings.json", contains: "autoMode" },
+  { file: ".claude/settings.json", contains: "useAutoModeDuringPlan" },
+  // 入れ子。点つなぎの名前で当てないと、`sandbox.*` の8件は1件も出ない
+  { file: ".claude/settings.json", contains: "sandbox.network.strictAllowlist" },
   { file: ".mcp.json", contains: "noType" },
   { file: ".mcp.json", contains: "noCmd" },
   { file: ".mcp.json", contains: "oldSse" },
@@ -57,6 +62,22 @@ else {
   fail++;
   console.log(`  NG 正しい設定に ${clean.findings.length} `);
   for (const f of clean.findings) console.log(`     ${f.file}: ${f.message}`);
+}
+
+// `~/.claude/settings.json` は**ユーザ設定**。同じ内容でも、そこでは正しい。
+// root がホームのときに「効きません」と出したら嘘になる。
+{
+  const home = process.env.HOME;
+  process.env.HOME = F + "clean-as-home";
+  const asHome = await check(F + "clean-as-home");
+  process.env.HOME = home;
+  const wrong = asHome.findings.filter((f) => f.message.includes("has no effect"));
+  if (wrong.length === 0) pass++;
+  else {
+    fail++;
+    console.log(`  NG ユーザ設定に ${wrong.length} 件のスコープ指摘`);
+    for (const f of wrong) console.log(`     ${f.file}: ${f.message}`);
+  }
 }
 
 console.log(`\n  ${pass} passed / ${fail} failed`);
