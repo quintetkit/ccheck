@@ -87,6 +87,9 @@ GitHub Issue を軸に、権限を分けた4人格を回す構成です。
 hook のイベントごとに、matcher が何に当たるか・`if` がどこで効くかを1枚の表にしました:
 [Claude Code の hook イベント一覧](https://quintetkit.github.io/reference/claude-code-hooks.html)。
 
+管理設定・ユーザ設定・`~/.claude.json` からしか効かないキーの一覧はこちらです。
+[プロジェクトの設定ファイルでは効かないキー](https://quintetkit.github.io/reference/claude-code-settings-scope.html)。
+
 [scopecheck](https://github.com/quintetkit/scopecheck) は、その一歩手前を見ます。
 いま開いている Issue のうち、**どれとどれが同じファイルを宣言していて、
 同時に走らせられないか**を出します。

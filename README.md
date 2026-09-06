@@ -94,6 +94,10 @@ Every hook event, what its matcher is tested against, and where the `if` field
 applies, in one table:
 [Claude Code hook events](https://quintetkit.github.io/en/reference/claude-code-hooks.html).
 
+Every key that applies only from a managed, user, or global config file, in
+another:
+[Settings keys that do nothing in a project file](https://quintetkit.github.io/en/reference/claude-code-settings-scope.html).
+
 [scopecheck](https://github.com/quintetkit/scopecheck) answers the question one
 step earlier: given the Issues you already have open, which pairs declare a
 shared file and therefore cannot run at the same time.
