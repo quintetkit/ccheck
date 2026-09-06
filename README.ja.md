@@ -85,14 +85,14 @@ error が1件でもあれば `1`、なければ `0`。`--strict` を付けると
 [Quartet](https://github.com/quintetkit/quartet) として MIT で公開しています。
 GitHub Issue を軸に、権限を分けた4人格を回す構成です。
 
-hook のイベントごとに、matcher が何に当たるか・`if` がどこで効くかを1枚の表にしました:
-[Claude Code の hook イベント一覧](https://quintetkit.github.io/reference/claude-code-hooks.html)。
+指摘の根拠になっている規則は、表にして置いてあります。実行しなくても確かめられます。
 
-管理設定・ユーザ設定・`~/.claude.json` からしか効かないキーの一覧はこちらです。
-[プロジェクトの設定ファイルでは効かないキー](https://quintetkit.github.io/reference/claude-code-settings-scope.html)。
-
-エラーにならずに読み込まれて、そのまま何もしない権限ルールの一覧もあります。
-[書けるのに無視される権限ルール](https://quintetkit.github.io/reference/claude-code-permission-rules.html)。
+| | |
+|---|---|
+| [hook イベント一覧](https://quintetkit.github.io/reference/claude-code-hooks.html) | イベントごとに、matcher が何に当たるか・`if` がどこで効くか |
+| [プロジェクトの設定ファイルでは効かないキー](https://quintetkit.github.io/reference/claude-code-settings-scope.html) | 管理設定・ユーザ設定・`~/.claude.json` からしか効かない71個 |
+| [書けるのに無視される権限ルール](https://quintetkit.github.io/reference/claude-code-permission-rules.html) | エラーにならず読み込まれて、何もしない5通り |
+| [サブエージェントの frontmatter](https://quintetkit.github.io/reference/claude-code-subagent-frontmatter.html) | `.claude/agents/` のファイルが黙って飛ばされる5条件と、全項目 |
 
 [scopecheck](https://github.com/quintetkit/scopecheck) は、その一歩手前を見ます。
 いま開いている Issue のうち、**どれとどれが同じファイルを宣言していて、

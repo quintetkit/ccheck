@@ -91,16 +91,15 @@ what should go *in* one — how to split work so several Claude Code sessions ca
 run at once without colliding — that is [Quartet](https://github.com/quintetkit/quartet):
 four personas with separate permissions, driven by GitHub Issues, under MIT.
 
-Every hook event, what its matcher is tested against, and where the `if` field
-applies, in one table:
-[Claude Code hook events](https://quintetkit.github.io/en/reference/claude-code-hooks.html).
+The rules behind these findings are written out as tables, so you can check the
+reasoning without running anything.
 
-Every key that applies only from a managed, user, or global config file, in
-another:
-[Settings keys that do nothing in a project file](https://quintetkit.github.io/en/reference/claude-code-settings-scope.html).
-
-And every permission rule that loads without an error and then does nothing:
-[Permission rules that are accepted and then ignored](https://quintetkit.github.io/en/reference/claude-code-permission-rules.html).
+| | |
+|---|---|
+| [Hook events](https://quintetkit.github.io/en/reference/claude-code-hooks.html) | every event, what its matcher is tested against, where `if` applies |
+| [Settings keys that do nothing in a project file](https://quintetkit.github.io/en/reference/claude-code-settings-scope.html) | the 71 keys that apply only from a managed, user, or global config file |
+| [Permission rules that are ignored](https://quintetkit.github.io/en/reference/claude-code-permission-rules.html) | five ways a rule loads without an error and does nothing |
+| [Subagent frontmatter](https://quintetkit.github.io/en/reference/claude-code-subagent-frontmatter.html) | five ways a file in `.claude/agents/` is skipped silently, and every field |
 
 [scopecheck](https://github.com/quintetkit/scopecheck) answers the question one
 step earlier: given the Issues you already have open, which pairs declare a
