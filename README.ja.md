@@ -76,6 +76,10 @@ hook のイベントごとに、matcher が何に当たるか・`if` がどこ�
 npx @quintetkit/scopecheck --repo owner/name
 ```
 
+[sharedfiles](https://github.com/quintetkit/sharedfiles) は git の履歴を読むので、
+**宣言が何も要りません。** ほとんどのコミットが触るファイルと、
+常に一緒に変わる組を出します。
+
 UI 設計人格・レビュー基準・Issue 単位の並列実行スクリプト・実践ガイド10章を足した
 [Quintet は有料](https://quartet-dev.booth.pm/items/8807156)です。
 

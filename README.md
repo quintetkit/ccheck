@@ -82,6 +82,10 @@ shared file and therefore cannot run at the same time.
 npx @quintetkit/scopecheck --repo owner/name
 ```
 
+[sharedfiles](https://github.com/quintetkit/sharedfiles) reads the git history
+instead, and needs no declarations at all: it reports which files most commits
+touch and which files always change together.
+
 A larger version with a UI Designer persona, the Reviewer's decision criteria,
 a per-Issue parallel execution script and a 10-chapter guide is
 [sold as Quintet](https://quartet-dev.booth.pm/items/8807156).
