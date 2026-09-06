@@ -9,8 +9,8 @@ import { join, relative, resolve, sep } from "node:path";
 import { parseFrontmatter, str } from "./frontmatter.ts";
 import type { Finding, Result } from "./report.ts";
 import {
-  DEPRECATED_SETTINGS, HANDLER_REQUIRED, HOOK_EVENTS,
-  IF_EVENTS, MCP_REQUIRED, NO_MATCHER_EVENTS, PATH_RULE_IGNORED, SRC,
+  COMMAND_TOOLS, DEPRECATED_SETTINGS, HANDLER_REQUIRED, HOOK_EVENTS,
+  IF_EVENTS, MCP_REQUIRED, NO_MATCHER_EVENTS, PATH_RULE_IGNORED, PRIMARY_FIELD, SRC,
 } from "./rules.ts";
 import {
   GLOBAL_CONFIG_ONLY, MANAGED_ONLY, USER_LOCAL_OR_MANAGED, USER_OR_MANAGED,
@@ -275,6 +275,48 @@ function checkPermissions(perms: unknown, rel: string, text: string, out: Findin
           because: `When a settings file is loaded, any mcp__ rule with parentheses is skipped: ${SRC.permissions}`,
         });
       }
+      // `Bash(command:rm *)` は複合コマンドで抜けられるので、公式が受け付けない。
+      // **無視されたうえで起動時に警告が出る。** 設定としては死んでいる
+      if (m && PRIMARY_FIELD[m[1]] !== undefined) {
+        const field = PRIMARY_FIELD[m[1]] as string;
+        const pm = /^([A-Za-z_][A-Za-z0-9_]*)\s*:/.exec(m[2]);
+        if (pm && pm[1] === field) {
+          out.push({
+            severity: "warn", file: rel, line,
+            message: `\`${rule}\` is ignored. \`${field}\` is ${m[1]}'s own content field `
+              + `and cannot be matched as a parameter. Write \`${m[1]}(${m[2].slice(field.length + 1).trim()})\` instead.`,
+            because: `A rule on a tool's primary content field is bypassable by a compound command, so it is ignored with a startup warning: ${SRC.permissions}`,
+          });
+        }
+      }
+
+      // `:*` は末尾でだけ「後続すべて」の意味になる。
+      // 途中に書いた `:` はただの文字で、何にも当たらない
+      const literalColon = m !== null && COMMAND_TOOLS.has(m[1])
+        && m[2].includes(":*") && !m[2].endsWith(":*");
+      if (literalColon && m) {
+        out.push({
+          severity: "warn", file: rel, line,
+          message: `\`${rule}\` treats \`:\` as a literal character. `
+            + `The \`:*\` form is recognised only at the end of a pattern.`,
+          because: `The :* form is only recognised at the end of a pattern; elsewhere the colon is literal: ${SRC.permissions}`,
+        });
+      }
+
+      // `Bash(git * main)` のように、`*` のうしろにまだ字が続く allow ルール。
+      // `*` はその位置の文字列すべてに当たるので、意図より広く許可してしまう
+      // `:*` の指摘が出ているなら、そちらのほうが原因を正確に言っている。
+      // **同じ1行に2つ出しても、直し方は増えない**
+      if (key === "allow" && m && !literalColon && COMMAND_TOOLS.has(m[1])
+          && /\*[^*]*[^\s*]/.test(m[2])) {
+        out.push({
+          severity: "warn", file: rel, line,
+          message: `\`${rule}\` has a wildcard before the rest of the command, `
+            + `so it allows more than it looks like it does.`,
+          because: `An allow rule with a wildcard before the rest of the command warns at startup: ${SRC.permissions}`,
+        });
+      }
+
       if (key === "allow" && !rule.startsWith("mcp__") && /^[A-Za-z_]*\*/.test(rule)) {
         out.push({
           severity: "warn", file: rel, line,

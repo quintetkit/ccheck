@@ -14,6 +14,10 @@
  *  - Read/Edit のパスパターンの妥当性: アンカー4種 × gitignore 意味論で
  *    誤検出のリスクが高すぎる
  *  - frontmatter の真偽値を true/false に限る: yes/no/on/off/1/0 も有効
+ *  - **deny / ask のツール名が実在するか**: 公式は「知らないツール名なら起動時に
+ *    警告する」としているが、その判定には最新のツール一覧が要る。
+ *    こちらが持てるのはスナップショットだけなので、**新しいツールが増えるたびに
+ *    誤検出する。** 未知の設定キーを検査しないのと同じ理由で、これも入れない
  */
 
 const D = "https://code.claude.com/docs/en";
@@ -78,6 +82,28 @@ export const DEPRECATED_SETTINGS: Record<string, string> = {
 
 /** パス指定を書いても参照されないツール（Read / Edit のみが対象） */
 export const PATH_RULE_IGNORED = new Set(["Write", "NotebookEdit", "Glob", "MultiEdit"]);
+
+/**
+ * ツールの「本体の入力」にあたるフィールド。
+ *
+ * `Bash(command:rm *)` のような**パラメータ指定は無視され、起動時に警告が出る。**
+ * 複合コマンドで抜けられてしまうため、公式が意図的に受け付けない。
+ * 書きたいなら `Bash(rm *)` / `Read(./path)` / `WebFetch(domain:host)` の形にする。
+ */
+export const PRIMARY_FIELD: Record<string, string> = {
+  Bash: "command",
+  PowerShell: "command",
+  Read: "file_path",
+  Edit: "file_path",
+  Write: "file_path",
+  Grep: "path",
+  Glob: "path",
+  NotebookEdit: "notebook_path",
+  WebFetch: "url",
+};
+
+/** `*` の前に置くと「その位置の文字列すべて」になるツール（コマンド系） */
+export const COMMAND_TOOLS = new Set(["Bash", "PowerShell"]);
 
 /** .mcp.json のトランスポート別の必須フィールド */
 export const MCP_REQUIRED: Record<string, string> = {

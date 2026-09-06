@@ -30,7 +30,8 @@ In CI:
 
 | Target | What it looks at |
 |---|---|
-| `.claude/settings.json` | JSON validity, permission rule syntax, deprecated keys, **keys that do not apply from this file** |
+| `.claude/settings.json` | JSON validity, deprecated keys, **keys that do not apply from this file** |
+| permission rules | rules that are accepted and then ignored: unanchored allow globs, path rules on tools that never consult them, parameter rules on a tool's own content field, a wildcard before the rest of a command |
 | `.claude/agents/*.md` | required frontmatter, duplicate names, invalid names |
 | `.mcp.json` | required fields per transport |
 | hooks configuration | unknown event names, matchers that match nothing |

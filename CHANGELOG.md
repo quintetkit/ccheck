@@ -2,6 +2,30 @@
 
 ## 1.2.0
 
+### Added: three permission rules that are accepted and then ignored
+
+```
+warn  `Bash(command:rm *)` is ignored. `command` is Bash's own content field and
+      cannot be matched as a parameter. Write `Bash(rm *)` instead.
+warn  `Bash(git:* push)` treats `:` as a literal character. The `:*` form is
+      recognised only at the end of a pattern.
+warn  `Bash(git * main)` has a wildcard before the rest of the command, so it
+      allows more than it looks like it does.
+```
+
+All three are documented as ignored or as a startup warning. The tests run the
+exact rule strings from the documentation, including the eleven that must
+produce nothing — a permission checker that calls `Read(./src/**/*.ts)` broken
+is worse than no checker.
+
+### Deliberately not added: whether a deny/ask rule names a real tool
+
+The documentation says an unknown tool name warns at startup, and that check
+needs the current list of tools. All this can hold is a snapshot, so it would
+warn on every tool released after it. That is the same reason unknown settings
+keys are not checked.
+
+
 ### Added: keys that are valid but do not apply from the file they are written in
 
 71 settings keys apply only from a **managed**, **user**, or **global config**

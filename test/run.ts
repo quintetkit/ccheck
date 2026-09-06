@@ -80,5 +80,54 @@ else {
   }
 }
 
+// 権限ルールの表は、**ドキュメントに載っている例そのもの**で確かめる。
+// ここは誤検出がいちばん出やすい場所で、正しい書き方を「壊れている」と言ったら終わり
+{
+  // リポジトリの中に作る。**システムの一時ディレクトリは書けないことがある**
+  // （サンドボックスで EACCES になった）
+  const { mkdir, writeFile, rm } = await import("node:fs/promises");
+  const { join } = await import("node:path");
+
+  // [ルール, 指摘が出るべきか]
+  const cases: Array<[string, boolean]> = [
+    // 出てはいけないもの（ドキュメントの「こう書く」例）
+    ["Bash(npm run build)", false],
+    ["Bash(npm run *)", false],
+    ["Bash(git log *)", false],
+    ["Bash(ls *)", false],
+    ["Bash(ls*)", false],
+    ["Bash(ls:*)", false],
+    ["Bash(rm *)", false],
+    ["Read(./.env)", false],
+    ["Read(./src/**/*.ts)", false],
+    ["WebFetch(domain:example.com)", false],
+    ["Bash(run_in_background:true)", false],
+    // 出るべきもの
+    ["Bash(git * main)", true],       // `*` のうしろにまだ字が続く
+    ["Bash(* --version)", true],
+    ["Bash(command:rm *)", true],     // 本体の入力はパラメータ指定できない
+    ["Read(file_path:./x)", true],
+    ["WebFetch(url:https://x)", true],
+    ["Bash(git:* push)", true],       // `:*` は末尾でだけ効く
+  ];
+
+  const dir = join(F, ".tmp-perm");
+  await rm(dir, { recursive: true, force: true });
+  for (const [rule, want] of cases) {
+    await mkdir(join(dir, ".claude"), { recursive: true });
+    await writeFile(join(dir, ".claude", "settings.json"),
+      JSON.stringify({ permissions: { allow: [rule] } }, null, 2));
+    const r = await check(dir);
+    const got = r.findings.some((f) => f.message.includes(rule));
+    if (got === want) pass++;
+    else {
+      fail++;
+      console.log(`  NG ${rule}: ${want ? "出るべきなのに出ない" : "出てはいけないのに出た"}`);
+      for (const f of r.findings) console.log(`     ${f.message}`);
+    }
+  }
+  await rm(dir, { recursive: true, force: true });
+}
+
 console.log(`\n  ${pass} passed / ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);
