@@ -91,6 +91,9 @@ hook のイベントごとに、matcher が何に当たるか・`if` がどこ�
 管理設定・ユーザ設定・`~/.claude.json` からしか効かないキーの一覧はこちらです。
 [プロジェクトの設定ファイルでは効かないキー](https://quintetkit.github.io/reference/claude-code-settings-scope.html)。
 
+エラーにならずに読み込まれて、そのまま何もしない権限ルールの一覧もあります。
+[書けるのに無視される権限ルール](https://quintetkit.github.io/reference/claude-code-permission-rules.html)。
+
 [scopecheck](https://github.com/quintetkit/scopecheck) は、その一歩手前を見ます。
 いま開いている Issue のうち、**どれとどれが同じファイルを宣言していて、
 同時に走らせられないか**を出します。

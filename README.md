@@ -99,6 +99,9 @@ Every key that applies only from a managed, user, or global config file, in
 another:
 [Settings keys that do nothing in a project file](https://quintetkit.github.io/en/reference/claude-code-settings-scope.html).
 
+And every permission rule that loads without an error and then does nothing:
+[Permission rules that are accepted and then ignored](https://quintetkit.github.io/en/reference/claude-code-permission-rules.html).
+
 [scopecheck](https://github.com/quintetkit/scopecheck) answers the question one
 step earlier: given the Issues you already have open, which pairs declare a
 shared file and therefore cannot run at the same time.
