@@ -1,0 +1,27 @@
+name: Release to npm
+
+# タグを押したら公開する。
+# npm の Trusted Publishing（OIDC）を使うので、トークンを持たない。
+# 秘密を1つも置かないのが目的で、漏れようがないものは漏れない。
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write   # OIDC。これが無いと Trusted Publishing は成立しない
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+      - run: npm ci
+      # 出す前に落とす。壊れたものを publish してから気づくのがいちばん高くつく
+      - run: npm test
+      - run: npm publish --access public
