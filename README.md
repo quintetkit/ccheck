@@ -14,11 +14,11 @@ so it cannot be delivered by an article or a newsletter. It has to be a tool.
 
 ## Use it
 
-No dependencies. Node 22 or later.
-
 ```bash
-npx github:quintetkit/ccheck        # from your repository root
+npx @quintetkit/ccheck        # from your repository root
 ```
+
+No runtime dependencies. Node 22.18 or later.
 
 In CI:
 
@@ -62,24 +62,6 @@ not become a rule.**
 
 `1` if there is at least one error, `0` otherwise. Pass `--strict` to fail on
 warnings too.
-
-## Related
-
-`ccheck` looks at the shape of a `.claude/` directory. If you are also deciding
-what should go *in* one — how to split work so several Claude Code sessions can
-run at once without colliding — I publish that as
-[Quartet](https://github.com/quintetkit/quartet): four personas with separate
-permissions, driven by GitHub Issues, under MIT.
-
-Every hook event, what its matcher is tested against, and where the `if` field
-applies, in one table:
-[Claude Code hook events](https://quintetkit.github.io/en/reference/claude-code-hooks.html).
-
-[scopecheck](https://github.com/quintetkit/scopecheck) answers the question one step earlier: given the Issues you already have open, which pairs declare a shared file and therefore cannot run at the same time.
-
-A larger version with a UI Designer persona, the Reviewer's decision criteria,
-a per-Issue parallel execution script and a 10-chapter guide is
-[sold as Quintet](https://quartet-dev.booth.pm/items/8807156).
 
 ## Licence
 

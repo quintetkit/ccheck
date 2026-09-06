@@ -18,16 +18,19 @@ const flag = (name: string): string | undefined => {
 const has = (name: string): boolean => args.includes(`--${name}`);
 
 if (has("help")) {
-  console.log(`ccheck — .claude/ の設定を検査する
+  // 指摘は英語で出るので、ヘルプも英語に揃える。
+  // npm と Marketplace に出す以上、既定は英語のほうが届く
+  console.log(`ccheck - lint your .claude/ configuration
 
-  ccheck [ディレクトリ] [オプション]
+  ccheck [directory] [options]
 
-オプション:
-  --format human|github|json  出力形式（既定: human。CI では github が読みやすい）
-  --strict                    warn でも終了コードを 1 にする
-  --help                      これ
+Options:
+  --format human|github|json  output format (default: human; github reads better in CI)
+  --strict                    exit 1 on warnings too
+  --help                      this
 
-指摘には必ず出典を付けています。根拠を示せないものは報告しません。`);
+Every finding cites the documentation that says so. A rule that cannot be
+cited is not written, because a checker that guesses stops being read.`);
   process.exit(0);
 }
 

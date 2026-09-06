@@ -1,0 +1,47 @@
+{
+  "name": "@quintetkit/ccheck",
+  "version": "1.1.0",
+  "description": "Lint your .claude/ configuration. Every finding cites the documentation that says so.",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "ccheck": "dist/cli.js"
+  },
+  "engines": {
+    "node": ">=22.18"
+  },
+  "keywords": [
+    "claude-code",
+    "claude",
+    "linter",
+    "configuration",
+    "cli",
+    "static-analysis",
+    "developer-tools",
+    "ai-assisted-development"
+  ],
+  "homepage": "https://github.com/quintetkit/ccheck#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/quintetkit/ccheck.git"
+  },
+  "bugs": {
+    "url": "https://github.com/quintetkit/ccheck/issues"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "README.ja.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --experimental-strip-types test/run.ts",
+    "build": "tsc -p tsconfig.json",
+    "prepack": "tsc -p tsconfig.json",
+    "prepare": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.1",
+    "typescript": "^5.9.3"
+  }
+}

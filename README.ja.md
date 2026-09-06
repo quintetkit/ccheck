@@ -11,11 +11,11 @@ Claude Code の設定は週単位で変わります。変更履歴を並べた�
 
 ## 使う
 
-依存関係はありません。Node 22 以降で動きます。
-
 ```bash
-npx github:quintetkit/ccheck        # リポジトリ直下で
+npx @quintetkit/ccheck        # リポジトリ直下で
 ```
+
+実行時の依存はありません。Node 22.18 以降で動きます。
 
 CI に入れる場合:
 
@@ -57,21 +57,6 @@ CI に入れる場合:
 ## 終了コード
 
 error が1件でもあれば `1`、なければ `0`。`--strict` を付けると warn でも `1` になります。
-
-## 関連
-
-`ccheck` が見るのは `.claude/` の書き方です。その中に何を書くか
-（複数の Claude Code を同時に走らせても衝突しないように、作業をどう分けるか）は
-[Quartet](https://github.com/quintetkit/quartet) として MIT で公開しています。
-GitHub Issue を軸に、権限を分けた4人格を回す構成です。
-
-UI 設計人格・レビュー基準・Issue 単位の並列実行スクリプト・実践ガイド10章を足した
-[Quintet は有料](https://quartet-dev.booth.pm/items/8807156)です。
-
-hook のイベントごとに、matcher が何に当たるか・`if` がどこで効くかを1枚の表にしました:
-[Claude Code の hook イベント一覧](https://quintetkit.github.io/reference/claude-code-hooks.html)。
-
-[scopecheck](https://github.com/quintetkit/scopecheck) は、その一歩手前を見ます。いま開いている Issue のうち、**どれとどれが同じファイルを宣言していて、同時に走らせられないか**を出します。
 
 ## ライセンス
 
