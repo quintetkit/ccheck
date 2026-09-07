@@ -92,7 +92,9 @@ run at once without colliding — that is [Quartet](https://github.com/quintetki
 four personas with separate permissions, driven by GitHub Issues, under MIT.
 
 The rules behind these findings are written out as tables, so you can check the
-reasoning without running anything.
+reasoning without running anything. Start here if you have not yet worked out
+that "valid, silent, and ignored" is a category:
+**[everything that is configured correctly and does nothing](https://quintetkit.github.io/en/reference/claude-code-silent-config.html)**.
 
 | | |
 |---|---|
