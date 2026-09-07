@@ -46,7 +46,7 @@ the 23 `User or managed` keys out entirely — this was 20 keys covered out of 7
 
 **Nested keys are matched by their dotted name.** The documentation names them
 `sandbox.network.strictAllowlist`, and only the top level was ever inspected, so
-all eight `sandbox.*` entries produced nothing. Descent stops as soon as a parent
+all 20 dotted keys produced nothing, 12 of them `sandbox.*`. Descent stops as soon as a parent
 matches, so `policyHelper` and `policyHelper.path` are not both reported.
 
 **`~/.claude/settings.json` is the user scope.** The path looks identical to a

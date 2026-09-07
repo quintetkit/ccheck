@@ -342,7 +342,8 @@ function checkPermissions(perms: unknown, rel: string, text: string, out: Findin
  * 設定オブジェクトを `sandbox.network.strictAllowlist` のような**点つなぎの名前**に潰す。
  *
  * ドキュメントの表がその形で書いてあるので、こちらも合わせないと当たらない。
- * 実際 `sandbox.*` の8件は、上の階層しか見ていなかったので1件も出ていなかった。
+ * 実際、点つなぎのキー20件（うち `sandbox.*` が12件）は、上の階層しか見ていなかったので
+ * 1件も出ていなかった。
  *
  * 配列には降りない（`permissions.allow` の中身はキーではない）。
  * 上の階層が当たったらそこで止める（`policyHelper` と `policyHelper.path` を
