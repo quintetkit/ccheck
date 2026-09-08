@@ -2,6 +2,28 @@
 
 ## 1.2.0
 
+### Added: `tools: *` in a subagent file
+
+```
+warn  .claude/agents/coder.md:4
+      `tools: *` is not a documented pattern. Omit `tools` to inherit every tool
+      available to subagents.
+```
+
+The field accepts exact tool names, or `mcp__<server>` / `mcp__<server>__*`. A
+bare `*` is not among them, and an entry that resolves to nothing makes Claude
+Code refuse to launch the subagent. Omitting the field is the documented way to
+say "every tool".
+
+This is a check on the **syntax**, not on whether a tool name exists — the
+latter is deliberately not checked, because a snapshot would flag every tool
+released after it. `*` is not a tool name in any version, so this rule does not
+go stale.
+
+Found by running this linter against the configurations shipped in this
+project's own products: four copies of a coder persona had it.
+
+
 ### Added: three permission rules that are accepted and then ignored
 
 ```

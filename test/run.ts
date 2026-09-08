@@ -29,6 +29,7 @@ const expected: Expect[] = [
   { file: ".claude/settings.json", contains: "useAutoModeDuringPlan" },
   // 入れ子。点つなぎの名前で当てないと、`sandbox.*` の8件は1件も出ない
   { file: ".claude/settings.json", contains: "sandbox.network.strictAllowlist" },
+  { file: ".claude/agents/e.md", contains: "tools: *" },
   { file: ".mcp.json", contains: "noType" },
   { file: ".mcp.json", contains: "noCmd" },
   { file: ".mcp.json", contains: "oldSse" },

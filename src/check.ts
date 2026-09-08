@@ -119,6 +119,32 @@ async function checkAgents(root: string, out: Finding[], checked: string[]): Pro
       }
     }
 
+    // `tools: *` / `disallowedTools: *`。
+    //
+    // **`*` は、この欄で文書化されている書き方ではない。**
+    // 受け付けられるのは正確なツール名か `mcp__<server>` / `mcp__<server>__*`。
+    // 解決できない項目があるとサブエージェントは起動を拒否される。
+    // 「全部使わせる」なら**欄ごと省く**のが文書化された書き方。
+    //
+    // ツール名が実在するかは**あえて検査していない**（新しいツールで誤検出する）。
+    // ここで見ているのは名前の実在ではなく、`*` という**書き方**なので古びない。
+    for (const field of ["tools", "disallowedTools"] as const) {
+      const v = str(fm, field);
+      if (v === undefined) continue;
+      const items = v.split(",").map((x) => x.trim()).filter(Boolean);
+      const bare = items.filter((x) => x === "*");
+      if (bare.length > 0) {
+        out.push({
+          severity: "warn", file: rel, line: fm.entries.get(field)?.line,
+          message: `\`${field}: *\` is not a documented pattern. `
+            + (field === "tools"
+              ? "Omit `tools` to inherit every tool available to subagents."
+              : "Name the tools or use `mcp__<server>` to remove a server's tools."),
+          because: `tools accepts exact tool names or mcp__<server> patterns, and omitting it inherits every tool: ${SRC.agents}`,
+        });
+      }
+    }
+
     if (fm.entries.has("cacheTtl")) {
       out.push({
         severity: "error", file: rel, line: fm.entries.get("cacheTtl")?.line,
