@@ -57,6 +57,24 @@ for (const f of broken.findings) {
   } else pass++;
 }
 
+// **実物**。出荷している `.claude/` の写しで、テストのために書かれたものではない。
+// 数日のあいだ `tools: *` が入っていて、当時の規則では通っていた。
+//
+// ここが落ちたら、意味は2つのどちらか。
+//  - 出荷している設定に本当に問題ができた → **設定を直す。fixture ではない**
+//  - 実物に対して誤検出が出るようになった
+// どちらも赤にする価値がある。
+// 由来は test/fixtures/PROVENANCE.md に書いてある
+{
+  const captured = await check(F + "captured-quartet");
+  if (captured.findings.length === 0) pass++;
+  else {
+    fail++;
+    console.log(`  NG 実物の設定に ${captured.findings.length} 件`);
+    for (const f of captured.findings) console.log(`     ${f.file}: ${f.message}`);
+  }
+}
+
 const clean = await check(F + "clean");
 if (clean.findings.length === 0) pass++;
 else {
