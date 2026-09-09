@@ -30,6 +30,7 @@
   },
   "files": [
     "dist",
+    "data",
     "README.md",
     "README.ja.md",
     "LICENSE",

@@ -72,6 +72,25 @@ as skipped, or as ignored. Everything else is passed in silence.
 Every finding carries the URL it came from, so you can check the original yourself
 rather than taking the tool's word for it.
 
+## The data, on its own
+
+The scoped keys are in `data/settings-scopes.json`, generated from the same
+snapshot the linter reads.
+
+```json
+{
+  "counts": { "Managed": 39, "User or managed": 23,
+              "User, local, or managed": 3, "Global config": 6 },
+  "total": 71,
+  "keys": { "autoMode": "User or managed", "diffTool": "Global config", ... }
+}
+```
+
+It is there so the claim can be checked without trusting the tool: diff it
+against the official table yourself. It is also the file to read if you are
+building something else and would rather not copy the table by hand — which is
+how the linter came to hold 20 of the 71 in the first place.
+
 ## Sources
 
 `docs-snapshot/` holds the official documentation this was built from, captured
@@ -116,7 +135,7 @@ instead, and needs no declarations at all: it reports which files most commits
 touch and which files always change together.
 
 A larger version with a UI Designer persona, the Reviewer's decision criteria,
-a per-Issue parallel execution script and a 10-chapter guide is
+a per-Issue parallel execution script and a 11-chapter guide is
 [sold as Quintet](https://quintetkit.gumroad.com/l/quintet).
 
 ## Licence

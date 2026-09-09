@@ -2,6 +2,15 @@
 
 ## 1.2.0
 
+### Added: `data/settings-scopes.json`
+
+The 71 scoped keys as data, generated from the same snapshot the linter reads.
+
+It is there so the claim can be checked without trusting the tool, and so that
+anything else needing the table does not have to copy it by hand. Copying it by
+hand is how this linter came to hold 20 of the 71.
+
+
 ### Added: `tools: *` in a subagent file
 
 ```
