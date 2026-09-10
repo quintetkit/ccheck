@@ -28,6 +28,10 @@
   "bugs": {
     "url": "https://github.com/quintetkit/ccheck/issues"
   },
+  "funding": {
+    "type": "individual",
+    "url": "https://quintetkit.gumroad.com/l/quintet"
+  },
   "files": [
     "dist",
     "data",
