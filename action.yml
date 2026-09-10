@@ -17,6 +17,38 @@ inputs:
 runs:
   using: composite
   steps:
+    # **この action は src/cli.ts をそのまま node に渡す。**
+    # 型ストリップが既定で有効な Node（22.18 以降）が必要で、それ未満だと
+    #
+    #   TypeError [ERR_UNKNOWN_FILE_EXTENSION]: Unknown file extension ".ts"
+    #
+    # で落ちる。**この文言は Node のバージョンに一言も触れない。**
+    # ここで先に見て、何を足せばいいかを言う。
+    #
+    # setup-node をこちらで走らせて解決はしない。**job の PATH を書き換える**ので、
+    # 呼んだ側の後続ステップの Node まで変わってしまう。
+    - name: Node のバージョンを確かめる
+      shell: bash
+      run: |
+        set -euo pipefail
+        floor=22.18.0
+        # 落ちた理由を、後のステップから区別できるようにしておく。
+        # **「落ちた」だけでは、このガードが出した失敗なのか、
+        # 素の ERR_UNKNOWN_FILE_EXTENSION なのかが分からない。**
+        # 検証にはそれが必要で、書くのは落ちるときだけ。
+        note="${RUNNER_TEMP:-/tmp}/ccheck-node-unsupported"
+        if ! command -v node >/dev/null 2>&1; then
+          echo "node-missing" > "$note"
+          echo "::error::node が見つかりません。actions/setup-node@v5 で node-version: '22.18' 以降を入れてください / node not found; add actions/setup-node@v5 with node-version '22.18' or newer"
+          exit 1
+        fi
+        have=$(node --version | sed 's/^v//')
+        if [ "$(printf '%s\n%s\n' "$floor" "$have" | sort -V | head -1)" != "$floor" ]; then
+          echo "$have" > "$note"
+          echo "::error::Node $have では動きません（$floor 以降が必要）。この action は TypeScript を直接実行するため、型ストリップが既定で有効な Node が要ります。ワークフローに actions/setup-node@v5 (node-version: '22.18') を足してください / Node $have is too old (needs $floor+); add actions/setup-node@v5 with node-version '22.18'"
+          exit 1
+        fi
+        echo "Node ${have}（${floor} 以降が必要）"
     - name: ccheck
       shell: bash
       run: |

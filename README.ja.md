@@ -19,9 +19,18 @@ npx @quintetkit/ccheck        # リポジトリ直下で
 
 CI に入れる場合:
 
+CI で。**この action は TypeScript を直接実行するので、ランナーに Node 22.18
+以降が必要です。** 最初から入っている版が十分新しいとは限らず、このステップが
+無いと `ERR_UNKNOWN_FILE_EXTENSION` で落ちます（Node のバージョンには
+一言も触れないエラーです）。
+
 ```yaml
+- uses: actions/checkout@v5
+- uses: actions/setup-node@v5
+  with: { node-version: "22.18" }
 - uses: quintetkit/ccheck@v1
 ```
+
 
 ## 検査するもの
 

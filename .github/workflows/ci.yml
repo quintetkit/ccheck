@@ -46,15 +46,54 @@ jobs:
           fi
 
   action:
-    # composite action として呼べることまで確かめる
+    # composite action として呼べることまで確かめる。
+    # **宣言している最低バージョンでも試す。** 25 だけで通しても
+    # 「22.18 以降」という主張は一度も検証されない
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: ["22.18", "25"]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with: { node-version: "${{ matrix.node }}" }
+      - uses: ./
+        with:
+          path: test/fixtures/clean
+
+  action-old-node:
+    # **古い Node で呼ばれたとき、何が起きるかを固定する。**
+    #
+    # この action は src/cli.ts をそのまま node に渡すので、型ストリップが
+    # 既定で有効でない Node だと ERR_UNKNOWN_FILE_EXTENSION で落ちる。
+    # その文言は Node のバージョンに一言も触れない。
+    #
+    # 落ちること自体は正しい。**理由が伝わることを確かめる。**
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
-        with: { node-version: '25' }
-      - uses: ./
+        with: { node-version: '20' }
+      - id: run
+        continue-on-error: true
+        uses: ./
         with:
           path: test/fixtures/clean
+      - shell: bash
+        run: |
+          note="$RUNNER_TEMP/ccheck-node-unsupported"
+          if [ "${{ steps.run.outcome }}" != "failure" ]; then
+            echo "Node 20 で通ってしまった。ガードが効いていない"
+            exit 1
+          fi
+          # **「落ちた」だけでは足りない。** ガードが出した失敗なのか、
+          # 素の ERR_UNKNOWN_FILE_EXTENSION なのかを区別する
+          if [ ! -f "$note" ]; then
+            echo "落ちたが、バージョン確認のステップが出した失敗ではない"
+            echo "（node に .ts をそのまま渡して落ちている可能性がある）"
+            exit 1
+          fi
+          echo "Node $(cat "$note") をバージョン確認で拒否した（期待どおり）"
 
   published-tag:
     # 公開されているタグ経由で本当に使えるかを毎回確かめる。
