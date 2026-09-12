@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.3.0
+
+### Added: a path deny that a subprocess walks around
+
+A `Read` or `Edit` deny alongside an allow rule for `python`, `node`, `deno`,
+`bun`, `ruby` or `perl` is now a warning. Those deny rules reach Claude's file
+tools and the file commands Claude Code recognises in Bash, but not a script
+that opens files itself, so the allow rule is a way around the deny.
+
+Suggested by a reader on dev.to, whose version was "warn when a path deny exists
+and the sandbox is off". That one cannot be implemented honestly: ccheck reads
+the project settings files, and `sandbox` can be set in user or managed
+settings, which it never sees. Reporting the sandbox as off from that position
+would be a guess. What is decidable from the file in front of it is whether the
+same file also allows an interpreter, so that is the rule.
+
+The interpreter list holds only what the documentation names. `npm`, `npx` and
+`sh` can all launch a script too, and are not in it, because the citation does
+not go that far.
+
 ## 1.2.0
 
 ### Added: `data/settings-scopes.json`

@@ -10,7 +10,8 @@ import { parseFrontmatter, str } from "./frontmatter.ts";
 import type { Finding, Result } from "./report.ts";
 import {
   COMMAND_TOOLS, DEPRECATED_SETTINGS, HANDLER_REQUIRED, HOOK_EVENTS,
-  IF_EVENTS, MCP_REQUIRED, NO_MATCHER_EVENTS, PATH_RULE_IGNORED, PRIMARY_FIELD, SRC,
+  IF_EVENTS, INTERPRETERS, MCP_REQUIRED, NO_MATCHER_EVENTS, PATH_RULE_IGNORED,
+  PRIMARY_FIELD, SRC,
 } from "./rules.ts";
 import {
   GLOBAL_CONFIG_ONLY, MANAGED_ONLY, USER_LOCAL_OR_MANAGED, USER_OR_MANAGED,
@@ -275,8 +276,58 @@ function checkHooks(hooks: unknown, rel: string, text: string, out: Finding[]): 
 
 /* -------------------------------------------------------- settings.json */
 
+/**
+ * パスの deny と、任意のスクリプトを起動できる allow が同居している。
+ *
+ * `Edit(src/generated/**)` の deny は、Claude の組み込みファイルツールと、
+ * Claude Code が認識する Bash のファイルコマンド（`sed` など）には効く。
+ * **自分でファイルを開く Python / Node のスクリプトには効かない。**
+ * 同じファイルで `Bash(python *)` を許していれば、deny は迂回できる。
+ *
+ * **「sandbox が無効なら警告する」にはしていない。**
+ * ccheck が読むのはプロジェクトの設定ファイルだけで、
+ * sandbox はユーザー設定にも管理設定にも書ける。**見えないものについて
+ * 「無効だ」と報告するのは推測になる。**
+ * ここで見ているのは、同じファイルの中にある2つの規則だけ。
+ */
+function checkDenyReachesSubprocess(
+  perms: Record<string, unknown>, rel: string, text: string, out: Finding[],
+): void {
+  const deny = Array.isArray(perms.deny) ? perms.deny : [];
+  const allow = Array.isArray(perms.allow) ? perms.allow : [];
+
+  const pathDenies = deny.filter(
+    (r): r is string => typeof r === "string" && /^(Read|Edit)\(.+\)$/.test(r),
+  );
+  if (pathDenies.length === 0) return;
+
+  const escapes = allow.filter((r): r is string => {
+    if (typeof r !== "string") return false;
+    const m = /^Bash\((.*)\)$/.exec(r);
+    if (!m) return false;
+    // 先頭の語だけを見る。`Bash(git commit *)` の中の "node" には反応しない
+    const first = m[1].trim().split(/[\s:]/)[0].replace(/^.*\//, "");
+    return INTERPRETERS.includes(first);
+  });
+  if (escapes.length === 0) return;
+
+  out.push({
+    severity: "warn", file: rel, line: lineOf(text, escapes[0]) ?? lineOf(text, "allow"),
+    message: `\`${escapes[0]}\` can open files directly, so it is not covered by `
+      + `the path deny ${pathDenies.map((r) => `\`${r}\``).join(", ")}. `
+      + `Read / Edit deny rules reach Claude's file tools and the file commands `
+      + `Claude Code recognises in Bash, not a script that opens files itself. `
+      + `The sandbox is the OS-level enforcement that covers child processes.`,
+    because: `Read and Edit deny rules don't apply to arbitrary subprocesses that read `
+      + `or write files indirectly, like a Python or Node script that opens files itself; `
+      + `for OS-level enforcement, enable the sandbox: ${SRC.permissions}`,
+  });
+}
+
 function checkPermissions(perms: unknown, rel: string, text: string, out: Finding[]): void {
   if (!isObj(perms)) return;
+
+  checkDenyReachesSubprocess(perms, rel, text, out);
 
   for (const key of ["allow", "ask", "deny"] as const) {
     const rules = perms[key];

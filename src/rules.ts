@@ -84,6 +84,21 @@ export const DEPRECATED_SETTINGS: Record<string, string> = {
 export const PATH_RULE_IGNORED = new Set(["Write", "NotebookEdit", "Glob", "MultiEdit"]);
 
 /**
+ * `Read` / `Edit` の deny が届かない先を作るインタプリタ。
+ *
+ * 公式は、Read / Edit の deny について
+ * 「Claude の組み込みファイルツールと、Claude Code が認識する Bash の
+ * ファイルコマンド（`cat` `head` `tail` `sed`）には適用される」としたうえで、
+ * **「自分でファイルを開く Python や Node のスクリプトのような、任意の
+ * サブプロセスには適用されない」** と明記している。
+ *
+ * **ここに挙げるのは、その文が名指ししている種類のものだけ。**
+ * `npm` `npx` `sh` は入れない。任意のスクリプトを起動しうるが、
+ * 出典がそこまで言っていない。言っていないものを検査すると誤検出になる。
+ */
+export const INTERPRETERS = ["python", "python3", "node", "deno", "bun", "ruby", "perl"];
+
+/**
  * ツールの「本体の入力」にあたるフィールド。
  *
  * `Bash(command:rm *)` のような**パラメータ指定は無視され、起動時に警告が出る。**

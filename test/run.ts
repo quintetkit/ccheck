@@ -148,5 +148,57 @@ else {
   await rm(dir, { recursive: true, force: true });
 }
 
+// パスの deny と、任意のスクリプトを起動できる allow の同居。
+//
+// **dev.to の読者からの指摘で入れた規則。** 元の提案は「sandbox が無効なら
+// 警告する」だったが、ccheck はプロジェクトの設定ファイルしか読まない。
+// sandbox はユーザ設定にも管理設定にも書けるので、**見えないものについて
+// 「無効だ」とは言えない。** 同じファイルの中だけで決まる形に絞ってある。
+//
+// ここは誤検出がいちばん怖い。**deny があるだけでは出してはいけない。**
+{
+  const { mkdir, writeFile, rm } = await import("node:fs/promises");
+  const { join } = await import("node:path");
+
+  // [permissions, 指摘が出るべきか, 説明]
+  const cases: Array<[Record<string, string[]>, boolean, string]> = [
+    // 出てはいけないもの
+    [{ deny: ["Edit(src/generated/**)"] }, false, "deny だけ。逃げ道が無い"],
+    [{ deny: ["Edit(src/generated/**)"], allow: ["Bash(npm run *)"] },
+      false, "npm は出典が名指ししていない"],
+    [{ deny: ["Edit(src/generated/**)"], allow: ["Bash(git commit *)"] },
+      false, "ただのコマンド"],
+    [{ allow: ["Bash(python *)"] }, false, "パスの deny が無い"],
+    [{ deny: ["Bash(rm *)"], allow: ["Bash(python *)"] },
+      false, "deny がパスではない"],
+    [{ deny: ["Edit(x/**)"], allow: ["Bash(git log --format=node *)"] },
+      false, "先頭の語ではない node には反応しない"],
+    // 出るべきもの
+    [{ deny: ["Edit(src/generated/**)"], allow: ["Bash(python *)"] },
+      true, "python を許している"],
+    [{ deny: ["Read(.env)"], allow: ["Bash(node *)"] },
+      true, "node を許している"],
+    [{ deny: ["Read(.env)"], allow: ["Bash(/usr/bin/python3 *)"] },
+      true, "絶対パスでも語は python3"],
+  ];
+
+  const dir = join(F, ".tmp-deny");
+  await rm(dir, { recursive: true, force: true });
+  for (const [perms, want, why] of cases) {
+    await mkdir(join(dir, ".claude"), { recursive: true });
+    await writeFile(join(dir, ".claude", "settings.json"),
+      JSON.stringify({ permissions: perms }, null, 2));
+    const r = await check(dir);
+    const got = r.findings.some((f) => f.message.includes("not covered by the path deny"));
+    if (got === want) pass++;
+    else {
+      fail++;
+      console.log(`  NG ${why}: ${want ? "出るべきなのに出ない" : "出てはいけないのに出た"}`);
+      for (const f of r.findings) console.log(`     ${f.message}`);
+    }
+  }
+  await rm(dir, { recursive: true, force: true });
+}
+
 console.log(`\n  ${pass} passed / ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);
